@@ -1,18 +1,21 @@
 import base64
+import hashlib
 import pickle
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
-from django.shortcuts import render, redirect
+from django.db.models import F
+from django.http import HttpResponseRedirect, HttpRequest, HttpResponseForbidden, HttpResponse
+from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
 
-from polls.models import Comment
+from django_demo.settings import SECRET_KEY
 from polls.user_data import UserData
+from polls.models import Comment
 
 
 class IndexView(generic.ListView):
@@ -49,17 +52,29 @@ def comment(request: HttpRequest):
 
 def user_data(request: HttpRequest):
 
+    m = hashlib.sha256()
+
     if "data" not in request.COOKIES:
         response = HttpResponse("Setting a cookie")
         user_data = UserData(name='undefined', age=0, gender=None)
         encoded_data = base64.b64encode(pickle.dumps(user_data)).decode()
 
-        response.set_cookie('data', f'{encoded_data}', max_age=3600)
+        m.update(encoded_data.encode())
+        hex_digest = m.digest()
+        signature = base64.b64encode(hex_digest).decode()
+
+        response.set_cookie('data', f'{encoded_data}.{signature}', max_age=3600)
         return response
 
     cookie_data = request.COOKIES['data'].split('.')
-    decoded_data = base64.b64decode(cookie_data[0])
+    signature = base64.b64decode(cookie_data[1])
 
+    v = hashlib.sha256()
+    v.update(cookie_data[0].encode())
+    if v.digest() != signature:
+        return HttpResponseForbidden("Invalid signature")
+
+    decoded_data = base64.b64decode(cookie_data[0])
     data: UserData = pickle.loads(decoded_data)
 
     return render(request, "polls/user-data.html", {'data': data})
