@@ -6,16 +6,15 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.db.models import F
-from django.http import HttpResponseRedirect, HttpRequest, HttpResponseForbidden, HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpRequest, HttpResponseForbidden, HttpResponse
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.views import generic
 
 from django_demo.settings import SECRET_KEY
-from polls.user_data import UserData
 from polls.models import Comment
+from polls.user_data import UserData
 
 
 class IndexView(generic.ListView):
@@ -60,6 +59,7 @@ def user_data(request: HttpRequest):
         encoded_data = base64.b64encode(pickle.dumps(user_data)).decode()
 
         m.update(encoded_data.encode())
+        m.update(SECRET_KEY.encode())
         hex_digest = m.digest()
         signature = base64.b64encode(hex_digest).decode()
 
@@ -71,6 +71,7 @@ def user_data(request: HttpRequest):
 
     v = hashlib.sha256()
     v.update(cookie_data[0].encode())
+    v.update(SECRET_KEY.encode())
     if v.digest() != signature:
         return HttpResponseForbidden("Invalid signature")
 
