@@ -1,0 +1,12 @@
+{% extends "polls/base.html" %}
+{% block title %} Mot de passe oublié ? {% endblock %}
+{% block content %}
+
+    <form action="{% url 'polls:post-request-reset-password' %}" method="post">
+    {% csrf_token %}
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        <label>Login:</label><input type="text" name="username" />
+            <input class="btn" type="submit" value="Login" />
+    </form>
+
+{% endblock %}

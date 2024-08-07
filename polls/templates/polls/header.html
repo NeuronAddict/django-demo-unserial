@@ -1,0 +1,26 @@
+<nav class="hide-on-small">
+    <div class="nav-wrapper">
+        <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+
+        <a href="/" class="hide-on-med-and-down logo-margin">
+            https://github.com/NeuronAddict/vulnerable-apps.git
+        </a>
+
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+            <li><a href="/">Home</a></li>
+            <li><a href="/reflected/">reflected</a></li>
+            <li><a href="/login/">login</a></li>
+            <li><a href="/comments/">comments</a></li>
+            <li><a href="/userData/">user data</a></li>
+<!--            <li><a href="/clickjacking/admin.php">clickjacking : admin</a></li>-->
+<!--            <li><a href="/clickjacking/index.php">clickjacking : index</a></li>-->
+            <li><a href="/logout/">Logout</a></li>
+        </ul>
+    </div>
+</nav>
+
+
+<div>
+    {% include "polls/user_display.html" %}
+
+</div>

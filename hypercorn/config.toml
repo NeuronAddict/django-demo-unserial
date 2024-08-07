@@ -1,0 +1,4 @@
+keep_alive_timeout = 10
+workers = 2
+accesslog = "-"
+errorlog = "-"

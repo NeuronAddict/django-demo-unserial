@@ -1,0 +1,25 @@
+{% extends "polls/base.html" %}
+{% block title %} Partagez vos commentaires ! {% endblock %}
+{% block content %}
+
+    {% if comments_list %}
+    <ul>
+    {% for comment in comments_list %}
+        <li><a href="{%  url 'polls:author' %}">{{ comment.author.username }}</a> : {{ comment.comment_text }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No comments are available.</p>
+{% endif %}
+
+    <form action="{% url 'polls:comment' %}" method="post">
+    {% csrf_token %}
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+        <p>
+            <label for="message_input">Message : </label>
+            <input id="message_input" type="text" name="message" value="" />
+        </p>
+        <p><input type="submit" value="Vote"></p>
+    </form>
+
+{% endblock %}

@@ -1,0 +1,86 @@
+services:
+
+  django-init-static:
+    build:
+      context: .
+      target: django
+    command:
+      - python
+      - manage.py
+      - collectstatic
+      - --no-input
+    environment:
+      STATIC_ROOT: '/static'
+      DJANGO_SETTINGS_MODULE: django_demo.build_static_settings
+    volumes:
+      - static:/static
+    user: root
+
+  django-static:
+    image: docker.io/bitnami/nginx:1.25
+    volumes:
+      - static:/app/:ro
+    depends_on:
+      django-init-static:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8001:8080"
+
+  postgresql:
+    image: docker.io/bitnami/postgresql:16.2.0
+    environment:
+      POSTGRESQL_PASSWORD_FILE: /run/secrets/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "django-demo", "-d", "dbname=django-demo"]
+      start_period: 10s
+      interval: 10s
+      timeout: 2s
+      retries: 3
+    secrets:
+      - postgresql
+    env_file:
+      - .env.postgresql
+
+  django-demo-init:
+    build:
+      context: .
+      target: django
+    command: python manage.py migrate
+    restart: on-failure
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    secrets:
+      - postgresql
+      - django-key
+    env_file:
+      - .env.postgresql
+      - .env.django
+
+  django-demo:
+    build:
+      context: .
+    restart: on-failure
+    depends_on:
+      django-demo-init:
+        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+
+    env_file:
+      - .env.postgresql
+      - .env.django
+    secrets:
+      - postgresql
+      - django-key
+    ports:
+      - "127.0.0.1:8000:8000"
+
+secrets:
+  postgresql:
+    file: .secret/postgresql.txt
+  django-key:
+    file: .secret/django-key.txt
+
+volumes:
+  static: {}

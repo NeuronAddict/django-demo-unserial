@@ -1,0 +1,15 @@
+__pycache__
+Dockerfile
+dev-requirements.*
+requirements.in
+venv/
+db.sqlite3
+.gitignore
+.secret/
+docker-compose.yml
+.git/
+README.md
+.env.*
+.idea/
+.dockerignore
+argo/
